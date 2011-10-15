@@ -18,7 +18,6 @@ public class MvcMustache extends Mustache {
 
    @Override
    protected Mustache compilePartial(String name) throws MustacheException {
-      logger.info("Compile: " + name);
       MustacheTrace.Event event = null;
       if(trace) {
          event = MustacheTrace.addEvent("compile partial: " + name, getRoot() == null ? "classpath" : getRoot().getName());

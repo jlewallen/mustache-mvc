@@ -17,7 +17,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.LocalizedResourceHelper;
-import org.springframework.web.servlet.support.RequestContextUtils;
 
 import com.page5of4.mustache.spring.LayoutAndView;
 import com.sampullara.mustache.Mustache;
@@ -110,7 +109,9 @@ public class MustacheViewEngine implements ApplicationContextAware {
    private Resource getResource(String url) {
       try {
          LocalizedResourceHelper helper = new LocalizedResourceHelper(applicationContext);
-         Locale userLocale = RequestContextUtils.getLocale(servletRequest);
+         // Going to need to cache this, we could be called from another thread and won't have access to that Request.
+         // Locale userLocale = RequestContextUtils.getLocale(servletRequest);
+         Locale userLocale = Locale.US;
          return helper.findLocalizedResource("WEB-INF/views/" + url, ".html", userLocale);
       }
       catch(Exception e) {
