@@ -1,4 +1,4 @@
-package com.page5of4.spring;
+package com.page5of4.mustache.spring;
 
 import java.io.IOException;
 import java.io.PrintWriter;

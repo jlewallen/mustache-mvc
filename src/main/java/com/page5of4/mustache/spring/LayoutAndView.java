@@ -1,4 +1,4 @@
-package com.page5of4.spring;
+package com.page5of4.mustache.spring;
 
 public class LayoutAndView {
    private final String layout;
