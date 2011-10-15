@@ -6,7 +6,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.IOUtils;
@@ -20,7 +19,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.LocalizedResourceHelper;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
-import com.page5of4.spring.LayoutAndView;
+import com.page5of4.mustache.spring.LayoutAndView;
 import com.sampullara.mustache.Mustache;
 import com.sampullara.mustache.MustacheBuilder;
 import com.sampullara.mustache.Scope;
@@ -44,14 +43,18 @@ public class MustacheViewEngine implements ApplicationContextAware {
       this.cacheEnabled = cacheEnabled;
    }
 
-   public boolean contains(ServletConfig servletConfig, String url) {
-      return getResource(servletConfig, url) != null;
+   public boolean contains(String url) {
+      return getResource(url) != null;
    }
 
-   public void render(final ServletConfig servletConfig, final String view, final Scope scope, final PrintWriter writer) {
+   public Mustache createMustache(String view) {
+      String template = getSource(view);
+      return createMustache(view, template);
+   }
+
+   public void render(final String view, final Scope scope, final PrintWriter writer) {
       try {
-         String template = getSource(servletConfig, view);
-         Mustache mustache = createMustache(view, template);
+         Mustache mustache = createMustache(view);
          mustache.execute(writer, scope);
       }
       catch(Exception e) {
@@ -59,20 +62,20 @@ public class MustacheViewEngine implements ApplicationContextAware {
       }
    }
 
-   public void render(final ServletConfig servletConfig, final LayoutAndView lav, final Map<String, Object> model, final PrintWriter writer) {
+   public void render(final LayoutAndView lav, final Map<String, Object> model, final PrintWriter writer) {
       if(lav.getLayout() == null) {
-         render(servletConfig, lav.getView(), new Scope(model), writer);
+         render(lav.getView(), new Scope(model), writer);
       }
       else {
          LayoutViewModel layoutViewModel = layoutViewModelFactory.createLayoutViewModel(model, new LayoutBodyFunction() {
             @Override
             public String getBody() {
                StringWriter sw = new StringWriter();
-               render(servletConfig, lav.getView(), new Scope(model), new PrintWriter(sw));
+               render(lav.getView(), new Scope(model), new PrintWriter(sw));
                return sw.toString();
             }
          });
-         render(servletConfig, lav.getLayout(), new Scope(layoutViewModel), writer);
+         render(lav.getLayout(), new Scope(layoutViewModel), writer);
       }
    }
 
@@ -82,7 +85,9 @@ public class MustacheViewEngine implements ApplicationContextAware {
       }
       try {
          MustacheBuilder builder = new MustacheBuilder();
-         Mustache mustache = builder.parse(template);
+         builder.setSuperclass(MvcMustache.class.getName());
+         MvcMustache mustache = (MvcMustache)builder.parse(template);
+         mustache.setViewEngine(this);
          if(isCacheEnabled()) {
             cache.put(key, mustache);
          }
@@ -93,16 +98,16 @@ public class MustacheViewEngine implements ApplicationContextAware {
       }
    }
 
-   private String getSource(ServletConfig servletConfig, String url) {
+   private String getSource(String url) {
       try {
-         return IOUtils.toString(getResource(servletConfig, url).getInputStream());
+         return IOUtils.toString(getResource(url).getInputStream());
       }
       catch(Exception e) {
          throw new RuntimeException("Error resolving: " + url, e);
       }
    }
 
-   private Resource getResource(ServletConfig servletConfig, String url) {
+   private Resource getResource(String url) {
       try {
          LocalizedResourceHelper helper = new LocalizedResourceHelper(applicationContext);
          Locale userLocale = RequestContextUtils.getLocale(servletRequest);

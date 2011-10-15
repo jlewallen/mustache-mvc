@@ -14,7 +14,6 @@ import org.springframework.web.context.ServletConfigAware;
 import org.springframework.web.servlet.view.AbstractUrlBasedView;
 
 import com.page5of4.mustache.MustacheViewEngine;
-import com.page5of4.spring.LayoutAndView;
 
 public class MustacheView extends AbstractUrlBasedView implements ServletConfigAware {
 
@@ -42,14 +41,14 @@ public class MustacheView extends AbstractUrlBasedView implements ServletConfigA
    @Override
    public boolean checkResource(final Locale locale) throws Exception {
       LayoutAndView lav = getLayoutAndView(getUrl());
-      return engine.contains(servletConfig, lav.getView());
+      return engine.contains(lav.getView());
    }
 
    @Override
    protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
       try {
          LayoutAndView lav = LayoutAndView.getLayoutAndView(getUrl(), "layout");
-         engine.render(servletConfig, lav, model, response.getWriter());
+         engine.render(lav, model, response.getWriter());
       }
       catch(Exception error) {
          throw new RuntimeException(String.format("Error rendering %s", getUrl()), error);
