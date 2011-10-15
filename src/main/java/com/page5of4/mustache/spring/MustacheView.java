@@ -41,7 +41,7 @@ public class MustacheView extends AbstractUrlBasedView implements ServletConfigA
    @Override
    public boolean checkResource(final Locale locale) throws Exception {
       LayoutAndView lav = getLayoutAndView(getUrl());
-      return engine.contains(lav.getView());
+      return engine.containsView(lav.getView());
    }
 
    @Override

@@ -43,7 +43,7 @@ public class MustacheViewEngine implements ApplicationContextAware {
       this.cacheEnabled = cacheEnabled;
    }
 
-   public boolean contains(String url) {
+   public boolean containsView(String url) {
       return getResource(url) != null;
    }
 
