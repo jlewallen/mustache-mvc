@@ -1,5 +1,7 @@
 package com.page5of4.mustache;
 
+import java.io.File;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,12 +10,16 @@ import com.sampullara.mustache.MustacheException;
 import com.sampullara.mustache.MustacheTrace;
 
 public class MvcMustache extends Mustache {
-
    private static final Logger logger = LoggerFactory.getLogger(MvcMustache.class);
    private MustacheViewEngine viewEngine;
+   private String view;
 
    public void setViewEngine(MustacheViewEngine viewEngine) {
       this.viewEngine = viewEngine;
+   }
+
+   public void setViewName(String view) {
+      this.view = view;
    }
 
    @Override
@@ -22,7 +28,9 @@ public class MvcMustache extends Mustache {
       if(trace) {
          event = MustacheTrace.addEvent("compile partial: " + name, getRoot() == null ? "classpath" : getRoot().getName());
       }
-      Mustache mustache = viewEngine.createMustache(name);
+      File file = new File(view);
+      String path = file.getParent() + "/" + name;
+      Mustache mustache = viewEngine.createMustache(path);
       mustache.setMustacheJava(mj);
       mustache.setRoot(getRoot());
       if(trace) {
@@ -30,5 +38,4 @@ public class MvcMustache extends Mustache {
       }
       return mustache;
    }
-
 }

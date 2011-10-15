@@ -27,12 +27,17 @@ public class MustacheViewEngine implements ApplicationContextAware {
 
    private static Logger logger = LoggerFactory.getLogger(MustacheViewEngine.class);
    private final ConcurrentHashMap<String, Mustache> cache = new ConcurrentHashMap<String, Mustache>();
+   private final LayoutViewModelFactory layoutViewModelFactory;
+   private final MustacheBuilder builder;
    private ApplicationContext applicationContext;
    private boolean cacheEnabled;
+
    @Autowired
-   private HttpServletRequest servletRequest;
-   @Autowired
-   private LayoutViewModelFactory layoutViewModelFactory;
+   public MustacheViewEngine(LayoutViewModelFactory layoutViewModelFactory, HttpServletRequest servletRequest) {
+      this.layoutViewModelFactory = layoutViewModelFactory;
+      builder = new MustacheBuilder();
+      builder.setSuperclass(MvcMustache.class.getName());
+   }
 
    public boolean isCacheEnabled() {
       return cacheEnabled;
@@ -47,8 +52,9 @@ public class MustacheViewEngine implements ApplicationContextAware {
    }
 
    public Mustache createMustache(String view) {
-      String template = getSource(view);
-      return createMustache(view, template);
+      String uri = getViewURI(view);
+      String template = getSource(uri);
+      return createMustache(uri, template);
    }
 
    public void render(final String view, final Scope scope, final PrintWriter writer) {
@@ -78,22 +84,21 @@ public class MustacheViewEngine implements ApplicationContextAware {
       }
    }
 
-   private Mustache createMustache(String key, String template) {
-      if(cache.containsKey(key)) {
-         return cache.get(key);
+   private Mustache createMustache(String view, String template) {
+      if(cache.containsKey(view)) {
+         return cache.get(view);
       }
       try {
-         MustacheBuilder builder = new MustacheBuilder();
-         builder.setSuperclass(MvcMustache.class.getName());
          MvcMustache mustache = (MvcMustache)builder.parse(template);
          mustache.setViewEngine(this);
+         mustache.setViewName(view);
          if(isCacheEnabled()) {
-            cache.put(key, mustache);
+            cache.put(view, mustache);
          }
          return mustache;
       }
       catch(Exception e) {
-         throw new RuntimeException("Error compiling: " + key, e);
+         throw new RuntimeException("Error compiling: " + view, e);
       }
    }
 
@@ -106,13 +111,18 @@ public class MustacheViewEngine implements ApplicationContextAware {
       }
    }
 
+   private String getViewURI(String view) {
+      if(view.startsWith("/")) return view;
+      return "/WEB-INF/views/" + view;
+   }
+
    private Resource getResource(String url) {
       try {
          LocalizedResourceHelper helper = new LocalizedResourceHelper(applicationContext);
          // Going to need to cache this, we could be called from another thread and won't have access to that Request.
          // Locale userLocale = RequestContextUtils.getLocale(servletRequest);
          Locale userLocale = Locale.US;
-         return helper.findLocalizedResource("WEB-INF/views/" + url, ".html", userLocale);
+         return helper.findLocalizedResource(url, ".html", userLocale);
       }
       catch(Exception e) {
          throw new RuntimeException("Error resolving: " + url, e);
