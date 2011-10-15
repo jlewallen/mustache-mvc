@@ -9,8 +9,8 @@ import com.sampullara.mustache.Mustache;
 import com.sampullara.mustache.MustacheException;
 import com.sampullara.mustache.MustacheTrace;
 
-public class MvcMustache extends Mustache {
-   private static final Logger logger = LoggerFactory.getLogger(MvcMustache.class);
+public class MustacheTemplate extends Mustache {
+   private static final Logger logger = LoggerFactory.getLogger(MustacheTemplate.class);
    private MustacheViewEngine viewEngine;
    private String view;
 

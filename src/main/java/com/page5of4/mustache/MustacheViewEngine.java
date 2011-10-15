@@ -36,7 +36,7 @@ public class MustacheViewEngine implements ApplicationContextAware {
    public MustacheViewEngine(LayoutViewModelFactory layoutViewModelFactory, HttpServletRequest servletRequest) {
       this.layoutViewModelFactory = layoutViewModelFactory;
       builder = new MustacheBuilder();
-      builder.setSuperclass(MvcMustache.class.getName());
+      builder.setSuperclass(MustacheTemplate.class.getName());
    }
 
    public boolean isCacheEnabled() {
@@ -89,7 +89,7 @@ public class MustacheViewEngine implements ApplicationContextAware {
          return cache.get(view);
       }
       try {
-         MvcMustache mustache = (MvcMustache)builder.parse(template);
+         MustacheTemplate mustache = (MustacheTemplate)builder.parse(template);
          mustache.setViewEngine(this);
          mustache.setViewName(view);
          if(isCacheEnabled()) {
