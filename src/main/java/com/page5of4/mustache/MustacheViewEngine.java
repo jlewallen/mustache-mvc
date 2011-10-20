@@ -112,7 +112,7 @@ public class MustacheViewEngine implements ApplicationContextAware {
    }
 
    private String getViewURI(String view) {
-      if(view.startsWith("/")) return view;
+      if(view.startsWith("/") || view.startsWith("\\")) return view;
       return "/WEB-INF/views/" + view;
    }
 
