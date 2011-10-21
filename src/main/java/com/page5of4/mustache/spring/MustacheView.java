@@ -37,18 +37,25 @@ public class MustacheView extends AbstractUrlBasedView {
 
    @Override
    public boolean checkResource(final Locale locale) throws Exception {
-      LayoutAndView lav = LayoutAndView.getLayoutAndView(getUrl(), DEFAULT_LAYOUT_NAME);
+      LayoutAndView lav = LayoutAndView.getLayoutAndView(getUrl(), DEFAULT_LAYOUT_NAME, false);
       return engine.containsView(lav.getView());
    }
 
    @Override
    protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
       try {
-         LayoutAndView lav = LayoutAndView.getLayoutAndView(getUrl(), DEFAULT_LAYOUT_NAME);
+         boolean forceNoLayout = isAjaxRequest(request);
+         LayoutAndView lav = LayoutAndView.getLayoutAndView(getUrl(), DEFAULT_LAYOUT_NAME, forceNoLayout);
          engine.render(lav, model, response.getWriter());
       }
       catch(Exception error) {
          throw new RuntimeException(String.format("Error rendering %s", getUrl()), error);
       }
+   }
+
+   private boolean isAjaxRequest(HttpServletRequest request) {
+      final String XML_HTTP_REQUEST = "XMLHttpRequest";
+      final String REQUESTED_WITH_HEADER = "X-Requested-With";
+      return XML_HTTP_REQUEST.equals(request.getHeader(REQUESTED_WITH_HEADER));
    }
 }

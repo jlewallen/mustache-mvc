@@ -18,11 +18,17 @@ public class LayoutAndView {
       this.view = view;
    }
 
-   public static LayoutAndView getLayoutAndView(String url, String defaultLayout) {
+   public static LayoutAndView getLayoutAndView(String url, String defaultLayout, boolean forceNoLayout) {
       String[] parts = url.split(":");
-      if(parts.length == 1) {
-         return new LayoutAndView(defaultLayout, parts[0]);
+      String layout = defaultLayout;
+      String view = url;
+      if(parts.length == 2) {
+         layout = parts[0];
+         view = parts[1];
       }
-      return new LayoutAndView(parts[0], parts[1]);
+      if(forceNoLayout) {
+         layout = null;
+      }
+      return new LayoutAndView(layout, view);
    }
 }
