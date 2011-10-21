@@ -31,6 +31,7 @@ public class MustacheViewEngine implements ApplicationContextAware {
    private final MustacheBuilder builder;
    private ApplicationContext applicationContext;
    private boolean cacheEnabled;
+   private String defaultModelName = "model";
 
    @Autowired
    public MustacheViewEngine(LayoutViewModelFactory layoutViewModelFactory, HttpServletRequest servletRequest) {
@@ -45,6 +46,14 @@ public class MustacheViewEngine implements ApplicationContextAware {
 
    public void setCacheEnabled(boolean cacheEnabled) {
       this.cacheEnabled = cacheEnabled;
+   }
+
+   public String getDefaultModelName() {
+      return defaultModelName;
+   }
+
+   public void setDefaultModelName(String defaultModelName) {
+      this.defaultModelName = defaultModelName;
    }
 
    public boolean containsView(String url) {
@@ -68,20 +77,28 @@ public class MustacheViewEngine implements ApplicationContextAware {
    }
 
    public void render(final LayoutAndView lav, final Map<String, Object> model, final PrintWriter writer) {
+      final Scope scope = createScope(model);
       if(lav.getLayout() == null) {
-         render(lav.getView(), new Scope(model), writer);
+         render(lav.getView(), scope, writer);
       }
       else {
          LayoutViewModel layoutViewModel = layoutViewModelFactory.createLayoutViewModel(model, new LayoutBodyFunction() {
             @Override
             public String getBody() {
                StringWriter sw = new StringWriter();
-               render(lav.getView(), new Scope(model), new PrintWriter(sw));
+               render(lav.getView(), scope, new PrintWriter(sw));
                return sw.toString();
             }
          });
          render(lav.getLayout(), new Scope(layoutViewModel), writer);
       }
+   }
+
+   private Scope createScope(final Map<String, Object> model) {
+      if(model.containsKey(getDefaultModelName())) {
+         return new Scope(model.get(getDefaultModelName()));
+      }
+      return new Scope(model);
    }
 
    private Mustache createMustache(String view, String template) {
