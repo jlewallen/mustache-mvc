@@ -31,7 +31,6 @@ public class MustacheViewEngine implements ApplicationContextAware {
    private final MustacheBuilder builder;
    private ApplicationContext applicationContext;
    private boolean cacheEnabled;
-   private String defaultModelName = "model";
 
    @Autowired
    public MustacheViewEngine(LayoutViewModelFactory layoutViewModelFactory, HttpServletRequest servletRequest) {
@@ -46,14 +45,6 @@ public class MustacheViewEngine implements ApplicationContextAware {
 
    public void setCacheEnabled(boolean cacheEnabled) {
       this.cacheEnabled = cacheEnabled;
-   }
-
-   public String getDefaultModelName() {
-      return defaultModelName;
-   }
-
-   public void setDefaultModelName(String defaultModelName) {
-      this.defaultModelName = defaultModelName;
    }
 
    public boolean containsView(String url) {
@@ -95,10 +86,7 @@ public class MustacheViewEngine implements ApplicationContextAware {
    }
 
    private Scope createScope(final Map<String, Object> model) {
-      if(model.containsKey(getDefaultModelName())) {
-         return new Scope(model.get(getDefaultModelName()));
-      }
-      return new Scope(model);
+      return new Scope(SingleModelAndView.getBodyModel(model));
    }
 
    private Mustache createMustache(String view, String template) {
