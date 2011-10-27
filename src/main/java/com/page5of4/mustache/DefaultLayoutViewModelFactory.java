@@ -11,6 +11,11 @@ public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, Se
    private ServletConfig servletConfig;
 
    @Override
+   public LayoutViewModel createLayoutViewModel(Map<String, Object> model) {
+      return createLayoutViewModel(model, null);
+   }
+
+   @Override
    public LayoutViewModel createLayoutViewModel(Map<String, Object> model, LayoutBodyFunction bodyFunction) {
       final ApplicationModel applicationModel = createApplicationModel();
       model.put(SingleModelAndView.APPLICATION_MODEL_NAME, applicationModel);

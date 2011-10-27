@@ -68,25 +68,22 @@ public class MustacheViewEngine implements ApplicationContextAware {
    }
 
    public void render(final LayoutAndView lav, final Map<String, Object> model, final PrintWriter writer) {
-      final Scope scope = createScope(model);
+      final Scope parentBodyScope = new Scope(layoutViewModelFactory.createLayoutViewModel(model));
+      final Scope bodyScope = new Scope(SingleModelAndView.getBodyModel(model), parentBodyScope);
       if(lav.getLayout() == null) {
-         render(lav.getView(), scope, writer);
+         render(lav.getView(), bodyScope, writer);
       }
       else {
          LayoutViewModel layoutViewModel = layoutViewModelFactory.createLayoutViewModel(model, new LayoutBodyFunction() {
             @Override
             public String getBody() {
                StringWriter sw = new StringWriter();
-               render(lav.getView(), scope, new PrintWriter(sw));
+               render(lav.getView(), bodyScope, new PrintWriter(sw));
                return sw.toString();
             }
          });
          render(lav.getLayout(), new Scope(layoutViewModel), writer);
       }
-   }
-
-   private Scope createScope(final Map<String, Object> model) {
-      return new Scope(SingleModelAndView.getBodyModel(model));
    }
 
    private Mustache createMustache(String view, String template) {
