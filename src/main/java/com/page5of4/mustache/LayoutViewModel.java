@@ -12,6 +12,9 @@ public class LayoutViewModel {
    }
 
    public String getBody() {
+      if(layoutBodyFunction == null) {
+         throw new RuntimeException("{{body}} is only valid from within a Layout.");
+      }
       return layoutBodyFunction.getBody();
    }
 
