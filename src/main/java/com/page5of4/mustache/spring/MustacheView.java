@@ -16,6 +16,7 @@ import com.page5of4.mustache.MustacheViewEngine;
 public class MustacheView extends AbstractUrlBasedView {
    private static Logger logger = LoggerFactory.getLogger(MustacheView.class);
    private static final String DEFAULT_LAYOUT_NAME = "layouts/default";
+   public static final String DEFAULT_CONTENT_TYPE = "text/html;charset=ISO-8859-1";
    private MustacheViewEngine engine;
 
    public MustacheViewEngine getEngine() {
@@ -46,6 +47,9 @@ public class MustacheView extends AbstractUrlBasedView {
       try {
          boolean forceNoLayout = isAjaxRequest(request);
          LayoutAndView lav = LayoutAndView.getLayoutAndView(getUrl(), DEFAULT_LAYOUT_NAME, forceNoLayout);
+         if(response.getContentType() == null) {
+            response.setContentType(DEFAULT_CONTENT_TYPE);
+         }
          engine.render(lav, model, response.getWriter());
       }
       catch(Exception error) {
