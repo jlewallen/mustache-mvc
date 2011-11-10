@@ -155,6 +155,10 @@
 			<url>http://download.java.net/maven/2/</url>
 			<layout>default</layout>
 		</repository>
+		<repository>
+			<id>ss-nexus</id>
+			<url>http://git.solutionstream.com/nexus/content/groups/public-and-private/</url>
+		</repository>
 	</repositories>
 
 	<build>
