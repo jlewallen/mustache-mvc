@@ -7,6 +7,7 @@ import javax.servlet.ServletConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.ServletConfigAware;
 
 public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, ServletConfigAware {
@@ -20,12 +21,15 @@ public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, Se
       return createLayoutViewModel(model, null);
    }
 
+   @Autowired
+   private I18nLambdaFactory localizationFactory;
+
    @Override
    public LayoutViewModel createLayoutViewModel(Map<String, Object> model, LayoutBodyFunction bodyFunction) {
       final ApplicationModel applicationModel = createApplicationModel();
       model.put(SingleModelAndView.APPLICATION_MODEL_NAME, applicationModel);
       String bodyModelAsJSON = getBodyModelAsJSON(SingleModelAndView.getBodyModel(model));
-      return new LayoutViewModel(applicationModel, SingleModelAndView.getBodyModel(model), bodyModelAsJSON, SingleModelAndView.getLayoutModel(model), bodyFunction);
+      return new LayoutViewModel(applicationModel, SingleModelAndView.getBodyModel(model), bodyModelAsJSON, SingleModelAndView.getLayoutModel(model), bodyFunction, localizationFactory.getI18nLambda());
    }
 
    @Override
