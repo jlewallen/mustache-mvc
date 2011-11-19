@@ -21,21 +21,13 @@ public class I18nLambdaFactory {
    private HttpServletRequest request;
 
    public Mustache.Lambda getI18nLambda() {
-      return new Mustache.Lambda() {
-
-         private Locale locale;
-
-         private Locale getLocale() {
-            if(locale == null) {
-               locale = new RequestContext(request).getLocale();
-            }
-            return locale;
-         }
+      final Locale locale = new RequestContext(request).getLocale();
+			return new Mustache.Lambda() {
 
          @Override
          public String apply(String message) {
             if(messageSource != null) {
-               return messageSource.getMessage(message, null, getLocale());
+               return messageSource.getMessage(message, null, locale);
             }
             return "";
          }
