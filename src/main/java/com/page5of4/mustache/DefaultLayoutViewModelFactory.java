@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.ServletConfigAware;
 
+import com.google.common.base.Function;
+
 public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, ServletConfigAware {
 
    private static final Logger logger = LoggerFactory.getLogger(DefaultLayoutViewModelFactory.class);
@@ -21,7 +23,7 @@ public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, Se
       return createLayoutViewModel(model, null);
    }
 
-   @Autowired
+   @Autowired(required = false)
    private I18nLambdaFactory localizationFactory;
 
    @Override
@@ -29,7 +31,11 @@ public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, Se
       final ApplicationModel applicationModel = createApplicationModel();
       model.put(SingleModelAndView.APPLICATION_MODEL_NAME, applicationModel);
       String bodyModelAsJSON = getBodyModelAsJSON(SingleModelAndView.getBodyModel(model));
-      return new LayoutViewModel(applicationModel, SingleModelAndView.getBodyModel(model), bodyModelAsJSON, SingleModelAndView.getLayoutModel(model), bodyFunction, localizationFactory.getI18nLambda());
+      Function<String, String> i18nLambda = null;
+      if(localizationFactory != null) {
+         i18nLambda = localizationFactory.getI18nLambda();
+      }
+      return new LayoutViewModel(applicationModel, SingleModelAndView.getBodyModel(model), bodyModelAsJSON, SingleModelAndView.getLayoutModel(model), bodyFunction, i18nLambda);
    }
 
    @Override
