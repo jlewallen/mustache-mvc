@@ -1,6 +1,9 @@
 package com.page5of4.mustache;
 
+import java.io.File;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Locale;
 import java.util.Map;
@@ -19,24 +22,21 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.LocalizedResourceHelper;
 
 import com.page5of4.mustache.spring.LayoutAndView;
-import com.sampullara.mustache.Mustache;
-import com.sampullara.mustache.MustacheBuilder;
-import com.sampullara.mustache.Scope;
+import com.samskivert.mustache.Mustache;
+import com.samskivert.mustache.Mustache.TemplateLoader;
+import com.samskivert.mustache.Template;
 
 public class MustacheViewEngine implements ApplicationContextAware {
 
    private static Logger logger = LoggerFactory.getLogger(MustacheViewEngine.class);
-   private final ConcurrentHashMap<String, Mustache> cache = new ConcurrentHashMap<String, Mustache>();
+   private final ConcurrentHashMap<String, Template> cache = new ConcurrentHashMap<String, Template>();
    private final LayoutViewModelFactory layoutViewModelFactory;
-   private final MustacheBuilder builder;
    private ApplicationContext applicationContext;
    private boolean cacheEnabled;
 
    @Autowired
    public MustacheViewEngine(LayoutViewModelFactory layoutViewModelFactory, HttpServletRequest servletRequest) {
       this.layoutViewModelFactory = layoutViewModelFactory;
-      builder = new MustacheBuilder();
-      builder.setSuperclass(MustacheTemplate.class.getName());
    }
 
    public boolean isCacheEnabled() {
@@ -51,16 +51,16 @@ public class MustacheViewEngine implements ApplicationContextAware {
       return getResource(url) != null;
    }
 
-   public Mustache createMustache(String view) {
+   public Template createMustache(String view) {
       String uri = getViewURI(view);
       String template = getSource(uri);
       return createMustache(uri, template);
    }
 
-   public void render(final String view, final Scope scope, final PrintWriter writer) {
+   public void render(final String view, final Object scope, final Object parentScope, final PrintWriter writer) {
       try {
-         Mustache mustache = createMustache(view);
-         mustache.execute(writer, scope);
+         Template template = createMustache(view);
+         template.execute(scope, parentScope, writer);
       }
       catch(Exception e) {
          throw new RuntimeException("Error rendering: " + view, e);
@@ -68,36 +68,42 @@ public class MustacheViewEngine implements ApplicationContextAware {
    }
 
    public void render(final LayoutAndView lav, final Map<String, Object> model, final PrintWriter writer) {
-      final Scope parentBodyScope = new Scope(layoutViewModelFactory.createLayoutViewModel(model));
-      final Scope bodyScope = new Scope(SingleModelAndView.getBodyModel(model), parentBodyScope);
+      final Object parentBodyScope = layoutViewModelFactory.createLayoutViewModel(model);
+      final Object bodyScope = SingleModelAndView.getBodyModel(model);
       if(lav.getLayout() == null) {
-         render(lav.getView(), bodyScope, writer);
+         render(lav.getView(), bodyScope, parentBodyScope, writer);
       }
       else {
          LayoutViewModel layoutViewModel = layoutViewModelFactory.createLayoutViewModel(model, new LayoutBodyFunction() {
             @Override
             public String getBody() {
                StringWriter sw = new StringWriter();
-               render(lav.getView(), bodyScope, new PrintWriter(sw));
+               render(lav.getView(), bodyScope, parentBodyScope, new PrintWriter(sw));
                return sw.toString();
             }
          });
-         render(lav.getLayout(), new Scope(layoutViewModel), writer);
+         render(lav.getLayout(), layoutViewModel, null, writer);
       }
    }
 
-   private Mustache createMustache(String view, String template) {
+   private Template createMustache(final String view, String template) {
       if(cache.containsKey(view)) {
          return cache.get(view);
       }
       try {
-         MustacheTemplate mustache = (MustacheTemplate)builder.parse(template);
-         mustache.setViewEngine(this);
-         mustache.setViewName(view);
+         Template compiled = Mustache.compiler().withLoader(new TemplateLoader() {
+            @Override
+            public Reader getTemplate(String name) throws Exception {
+               File file = new File(view);
+               String path = file.getParent() + File.separator + name;
+               String uri = getViewURI(path);
+               return new StringReader(getSource(uri));
+            }
+         }).compile(template);
          if(isCacheEnabled()) {
-            cache.put(view, mustache);
+            cache.put(view, compiled);
          }
-         return mustache;
+         return compiled;
       }
       catch(Exception e) {
          throw new RuntimeException("Error compiling: " + view, e);
