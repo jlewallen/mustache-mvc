@@ -9,7 +9,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.RequestContext;
 
-import com.google.common.base.Function;
+import com.samskivert.mustache.Mustache;
 
 @Service
 public class I18nLambdaFactory {
@@ -20,8 +20,8 @@ public class I18nLambdaFactory {
    @Autowired
    private HttpServletRequest request;
 
-   public Function<String, String> getI18nLambda() {
-      return new Function<String, String>() {
+   public Mustache.Lambda getI18nLambda() {
+      return new Mustache.Lambda() {
 
          private Locale locale;
 

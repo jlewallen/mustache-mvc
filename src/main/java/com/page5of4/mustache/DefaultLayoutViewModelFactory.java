@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.ServletConfigAware;
 
-import com.google.common.base.Function;
+import com.samskivert.mustache.Mustache;
 
 public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, ServletConfigAware {
 
@@ -31,7 +31,7 @@ public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, Se
       final ApplicationModel applicationModel = createApplicationModel();
       model.put(SingleModelAndView.APPLICATION_MODEL_NAME, applicationModel);
       String bodyModelAsJSON = getBodyModelAsJSON(SingleModelAndView.getBodyModel(model));
-      Function<String, String> i18nLambda = null;
+      Mustache.Lambda i18nLambda = null;
       if(localizationFactory != null) {
          i18nLambda = localizationFactory.getI18nLambda();
       }

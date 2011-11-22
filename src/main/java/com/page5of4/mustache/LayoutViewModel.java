@@ -1,6 +1,6 @@
 package com.page5of4.mustache;
 
-import com.google.common.base.Function;
+import com.samskivert.mustache.Mustache;
 
 public class LayoutViewModel {
    private final ApplicationModel applicationModel;
@@ -8,7 +8,7 @@ public class LayoutViewModel {
    private final Object bodyModel;
    private final Object layoutModel;
    private final String bodyModelAsJSON;
-   private final Function<String, String> i18nLambda;
+   private final Mustache.Lambda i18nLambda;
 
    public ApplicationModel getApplicationModel() {
       return applicationModel;
@@ -33,15 +33,15 @@ public class LayoutViewModel {
       return layoutModel;
    }
 
-   public Function<String, String> geti18n() {
+   public Mustache.Lambda geti18n() {
       return i18nLambda;
    }
 
-   public Function<String, String> getM() {
+   public Mustache.Lambda getM() {
       return i18nLambda;
    }
 
-   public LayoutViewModel(ApplicationModel applicationModel, Object bodyModel, String bodyModelAsJSON, Object layoutModel, LayoutBodyFunction layoutBodyFunction, Function<String, String> i18nLambda) {
+   public LayoutViewModel(ApplicationModel applicationModel, Object bodyModel, String bodyModelAsJSON, Object layoutModel, LayoutBodyFunction layoutBodyFunction, Mustache.Lambda i18nLambda) {
       super();
       this.applicationModel = applicationModel;
       this.bodyModel = bodyModel;
