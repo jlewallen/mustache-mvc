@@ -22,14 +22,14 @@ public class I18nLambdaFactory {
 
    public Mustache.Lambda getI18nLambda() {
       final Locale locale = new RequestContext(request).getLocale();
-			return new Mustache.Lambda() {
+      return new Mustache.Lambda() {
 
          @Override
          public String apply(String message) {
             if(messageSource != null) {
                return messageSource.getMessage(message, null, locale);
             }
-            return "";
+            return "<#m>" + message + "</m>";
          }
       };
    }
