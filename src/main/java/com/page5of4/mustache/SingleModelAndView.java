@@ -27,6 +27,10 @@ public class SingleModelAndView extends ModelAndView {
       this(view, null, null);
    }
 
+   public SingleModelAndView(Object bodyModel) {
+      this(null, bodyModel, null);
+   }
+
    public SingleModelAndView(String view, Object bodyModel) {
       this(view, bodyModel, null);
    }
