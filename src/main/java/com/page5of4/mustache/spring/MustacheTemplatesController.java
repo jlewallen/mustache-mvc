@@ -19,10 +19,27 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.context.support.ServletContextResourcePatternResolver;
 
-public class MustacheTemplatesController implements ServletContextAware {
+import com.google.common.collect.Maps;
 
+public class MustacheTemplatesController implements ServletContextAware {
    private ServletContext servletContext;
    private ServletContextResourcePatternResolver resolver;
+   private static final Map<String, String> keywords = Maps.newHashMap();
+
+   static {
+      String[] reserved = new String[] {
+            "break", "else", "new", "var",
+            "case", "finally", "return", "void",
+            "catch", "for", "switch", "while",
+            "continue", "function", "this", "with",
+            "default", "if", "throw",
+            "delete", "in", "try",
+            "do", "instanceof", "typeof", "true", "false"
+      };
+      for(String word : reserved) {
+         keywords.put(word, "_" + word);
+      }
+   }
 
    @RequestMapping(method = RequestMethod.GET)
    public void index(HttpServletResponse servletResponse) throws IOException {
@@ -36,7 +53,7 @@ public class MustacheTemplatesController implements ServletContextAware {
       sb.write("templates.bodies = {};\n");
       sb.write("\n");
       for(Map.Entry<String, String> entry : all().entrySet()) {
-         String key = entry.getKey();
+         String key = escapePathKeywords(entry.getKey());
          StringBuilder path = new StringBuilder();
          String[] parts = key.split("\\.");
          for(int i = 0; i < parts.length - 1; ++i) {
@@ -54,6 +71,21 @@ public class MustacheTemplatesController implements ServletContextAware {
          sb.write("  return Mustache.to_html(template, model, templates.bodies);\n");
          sb.write("}\n\n");
       }
+   }
+
+   private String escapePathKeywords(String path) {
+      StringBuilder escaped = new StringBuilder();
+      for(String part : path.split("\\.")) {
+         if(escaped.length() != 0) {
+            escaped.append(".");
+         }
+         String escapedPart = part;
+         if(keywords.containsKey(part)) {
+            escapedPart = keywords.get(part);
+         }
+         escaped.append(escapedPart);
+      }
+      return escaped.toString();
    }
 
    private Map<String, String> all() {

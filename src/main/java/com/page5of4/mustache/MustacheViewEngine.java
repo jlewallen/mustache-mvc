@@ -27,7 +27,6 @@ import com.samskivert.mustache.Mustache.TemplateLoader;
 import com.samskivert.mustache.Template;
 
 public class MustacheViewEngine implements ApplicationContextAware {
-
    private static Logger logger = LoggerFactory.getLogger(MustacheViewEngine.class);
    private final ConcurrentHashMap<String, Template> cache = new ConcurrentHashMap<String, Template>();
    private final LayoutViewModelFactory layoutViewModelFactory;
