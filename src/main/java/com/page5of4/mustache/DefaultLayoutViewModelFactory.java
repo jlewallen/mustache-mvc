@@ -28,6 +28,11 @@ public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, Se
 
    @Override
    public LayoutViewModel createLayoutViewModel(Map<String, Object> model, LayoutBodyFunction bodyFunction) {
+      return createLayoutViewModel(model, bodyFunction, null);
+   }
+
+   @Override
+   public LayoutViewModel createLayoutViewModel(Map<String, Object> model, LayoutBodyFunction bodyFunction, LayoutHeadersFunction headersFunction) {
       final ApplicationModel applicationModel = createApplicationModel();
       model.put(SingleModelAndView.APPLICATION_MODEL_NAME, applicationModel);
       String bodyModelAsJSON = getBodyModelAsJSON(SingleModelAndView.getBodyModel(model));
@@ -35,7 +40,7 @@ public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, Se
       if(localizationFactory != null) {
          i18nLambda = localizationFactory.getI18nLambda();
       }
-      return new LayoutViewModel(applicationModel, SingleModelAndView.getBodyModel(model), bodyModelAsJSON, SingleModelAndView.getLayoutModel(model), bodyFunction, i18nLambda);
+      return new LayoutViewModel(applicationModel, SingleModelAndView.getBodyModel(model), bodyModelAsJSON, SingleModelAndView.getLayoutModel(model), bodyFunction, headersFunction, i18nLambda);
    }
 
    @Override
