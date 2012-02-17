@@ -4,10 +4,10 @@
 	<groupId>com.page5of4.commons</groupId>
 	<artifactId>mustache-mvc</artifactId>
 	<packaging>jar</packaging>
-	<version>1.2.1-SNAPSHOT</version>
+	<version>1.2.2-SNAPSHOT</version>
 	<properties>
 		<java-version>1.6</java-version>
-		<org.springframework-version>3.0.5.RELEASE</org.springframework-version>
+		<org.springframework-version>3.1.0.RELEASE</org.springframework-version>
 		<org.slf4j-version>1.6.1</org.slf4j-version>
 	</properties>
 	
@@ -37,12 +37,12 @@
 		<dependency>
 			<groupId>com.samskivert</groupId>
 			<artifactId>jmustache</artifactId>
-			<version>1.7-SS-SNAPSHOT</version>
+			<version>1.7-SS</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.jackson</groupId>
 			<artifactId>jackson-mapper-asl</artifactId>
-			<version>1.7.5</version>
+			<version>1.9.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
@@ -186,6 +186,14 @@
 
 	<build>
 		<plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.2.2</version>
+        <configuration>
+          <pushChanges>false</pushChanges>
+         </configuration>
+      </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>

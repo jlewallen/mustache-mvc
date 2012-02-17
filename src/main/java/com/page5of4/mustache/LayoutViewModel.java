@@ -3,12 +3,13 @@ package com.page5of4.mustache;
 import com.samskivert.mustache.Mustache;
 
 public class LayoutViewModel {
-   private final ApplicationModel applicationModel;
-   private final LayoutBodyFunction layoutBodyFunction;
-   private final Object bodyModel;
-   private final Object layoutModel;
-   private final String bodyModelAsJSON;
-   private final Mustache.Lambda i18nLambda;
+   protected final ApplicationModel applicationModel;
+   protected final LayoutBodyFunction layoutBodyFunction;
+   protected final LayoutHeadersFunction layoutHeadersFunction;
+   protected final Object bodyModel;
+   protected final Object layoutModel;
+   protected final String bodyModelAsJSON;
+   protected final Mustache.Lambda i18nLambda;
 
    public ApplicationModel getApplicationModel() {
       return applicationModel;
@@ -21,8 +22,23 @@ public class LayoutViewModel {
       return layoutBodyFunction.getBody();
    }
 
+   public String getHeaders() {
+      if(layoutHeadersFunction == null) {
+         throw new RuntimeException("{{headers}} is only valid from within a Layout.");
+      }
+      return layoutHeadersFunction.getHeaders();
+   }
+
    public Object getBodyModel() {
       return bodyModel;
+   }
+
+   protected LayoutBodyFunction getLayoutBodyFunction() {
+      return layoutBodyFunction;
+   }
+
+   protected LayoutHeadersFunction getLayoutHeadersFunction() {
+      return layoutHeadersFunction;
    }
 
    public String getBodyModelAsJSON() {
@@ -41,13 +57,15 @@ public class LayoutViewModel {
       return i18nLambda;
    }
 
-   public LayoutViewModel(ApplicationModel applicationModel, Object bodyModel, String bodyModelAsJSON, Object layoutModel, LayoutBodyFunction layoutBodyFunction, Mustache.Lambda i18nLambda) {
+   public LayoutViewModel(ApplicationModel applicationModel, Object bodyModel, String bodyModelAsJSON, Object layoutModel, LayoutBodyFunction layoutBodyFunction,
+         LayoutHeadersFunction layoutHeadersFunction, Mustache.Lambda i18nLambda) {
       super();
       this.applicationModel = applicationModel;
       this.bodyModel = bodyModel;
       this.bodyModelAsJSON = bodyModelAsJSON;
       this.layoutModel = layoutModel;
       this.layoutBodyFunction = layoutBodyFunction;
+      this.layoutHeadersFunction = layoutHeadersFunction;
       this.i18nLambda = i18nLambda;
    }
 }
