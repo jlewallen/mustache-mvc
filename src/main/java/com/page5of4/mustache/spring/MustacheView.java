@@ -16,7 +16,7 @@ import com.page5of4.mustache.MustacheViewEngine;
 public class MustacheView extends AbstractUrlBasedView {
    private static Logger logger = LoggerFactory.getLogger(MustacheView.class);
    private static final String DEFAULT_LAYOUT_NAME = "layouts/default";
-   public static final String DEFAULT_CONTENT_TYPE = "text/html;charset=ISO-8859-1";
+   public static final String DEFAULT_CONTENT_TYPE = "text/html;charset=UTF-8";
    private MustacheViewEngine engine;
 
    public MustacheViewEngine getEngine() {
