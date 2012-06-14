@@ -32,6 +32,15 @@ public class MustacheViewEngine implements ApplicationContextAware {
    private final LayoutViewModelFactory layoutViewModelFactory;
    private ApplicationContext applicationContext;
    private boolean cacheEnabled;
+   private String basePath = "/WEB-INF/views/";
+
+   public String getBasePath() {
+      return basePath;
+   }
+
+   public void setBasePath(String basePath) {
+      this.basePath = basePath;
+   }
 
    @Autowired
    public MustacheViewEngine(LayoutViewModelFactory layoutViewModelFactory, HttpServletRequest servletRequest) {
@@ -120,7 +129,7 @@ public class MustacheViewEngine implements ApplicationContextAware {
 
    private String getViewURI(String view) {
       if(view.startsWith("/") || view.startsWith("\\")) return view;
-      return "/WEB-INF/views/" + view;
+      return basePath + view;
    }
 
    private Resource getResource(String url) {
