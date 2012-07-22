@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<groupId>com.page5of4.commons</groupId>
 	<artifactId>mustache-mvc</artifactId>
-	<packaging>bundle</packaging>
 	<version>1.2.3-SNAPSHOT</version>
+	<packaging>bundle</packaging>
+
 	<properties>
 		<java-version>1.6</java-version>
 		<org.springframework-version>3.1.0.RELEASE</org.springframework-version>
 		<org.slf4j-version>1.6.1</org.slf4j-version>
 	</properties>
-
-	<scm>
-		<connection>scm:git:https://git.solutionstream.com/git/public/mustache-mvc.git</connection>
-		<developerConnection>scm:git:https://git.solutionstream.com/git/public/mustache-mvc.git</developerConnection>
-	</scm>
 
 	<dependencies>
 		<dependency>
@@ -150,7 +147,7 @@
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
-				<version>2.3.6</version>
+				<version>2.3.7</version>
 				<extensions>true</extensions>
 				<executions>
 					<execution>
@@ -183,7 +180,8 @@
 							org.springframework.web.servlet.view.json; version="[3.0.0, 4.0.0]",
 							org.springframework.web.bind.annotation; version="[3.0.0, 4.0.0]",
 							org.springframework.context; version="[3.0.0, 4.0.0]",
-							org.springframework.core.io; version="[3.0.0, 4.0.0]",
+							org.springframework.core.io;
+							version="[3.0.0, 4.0.0]",
 							org.springframework.core.io.support; version="[3.0.0, 4.0.0]",
 							org.springframework.stereotype; version="[3.0.0, 4.0.0]",
 							org.codehaus.jackson.map; version="[1.0.0, 2.0.0)",
@@ -196,6 +194,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.1</version>
 				<executions>
 					<execution>
 						<id>install</id>
@@ -235,14 +234,16 @@
 		</plugins>
 	</build>
 
+
 	<distributionManagement>
 		<repository>
-			<id>jlewallen-release</id>
-			<url>http://git.solutionstream.com/nexus/content/repositories/page5of4-releases</url>
+			<id>page5of4-releases</id>
+			<url>http://dev.page5of4.com/nexus/content/repositories/releases</url>
 		</repository>
 		<snapshotRepository>
-			<id>jlewallen-snapshot</id>
-			<url>http://git.solutionstream.com/nexus/content/repositories/page5of4-snapshots</url>
+			<id>page5of4-snapshots</id>
+			<url>http://dev.page5of4.com/nexus/content/repositories/snapshots</url>
+			<uniqueVersion>false</uniqueVersion>
 		</snapshotRepository>
 	</distributionManagement>
 </project>
