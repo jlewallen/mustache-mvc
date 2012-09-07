@@ -13,7 +13,6 @@ import org.springframework.web.context.ServletConfigAware;
 import com.samskivert.mustache.Mustache;
 
 public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, ServletConfigAware {
-
    private static final Logger logger = LoggerFactory.getLogger(DefaultLayoutViewModelFactory.class);
    private ServletConfig servletConfig;
    private final ObjectMapper objectMapper = new ObjectMapper();
@@ -65,5 +64,4 @@ public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, Se
    protected String encodeURL(String url) {
       return servletConfig.getServletContext().getContextPath() + "/" + url;
    }
-
 }

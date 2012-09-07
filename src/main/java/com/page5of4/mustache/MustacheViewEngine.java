@@ -5,64 +5,41 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.LocalizedResourceHelper;
 
 import com.page5of4.mustache.spring.LayoutAndView;
 import com.samskivert.mustache.Mustache;
 import com.samskivert.mustache.Mustache.TemplateLoader;
 import com.samskivert.mustache.Template;
 
-public class MustacheViewEngine implements ApplicationContextAware {
-   private static Logger logger = LoggerFactory.getLogger(MustacheViewEngine.class);
+public class MustacheViewEngine {
    private final ConcurrentHashMap<String, Template> cache = new ConcurrentHashMap<String, Template>();
    private final LayoutViewModelFactory layoutViewModelFactory;
-   private ApplicationContext applicationContext;
-   private boolean cacheEnabled;
-   private String basePath = "/WEB-INF/views/";
-
-   public String getBasePath() {
-      return basePath;
-   }
-
-   public void setBasePath(String basePath) {
-      this.basePath = basePath;
-   }
+   private final TemplateSourceLoader sourceLoader;
+   private boolean sourceCachingEnabled;
 
    @Autowired
-   public MustacheViewEngine(LayoutViewModelFactory layoutViewModelFactory, HttpServletRequest servletRequest) {
+   public MustacheViewEngine(LayoutViewModelFactory layoutViewModelFactory, TemplateSourceLoader sourceLoader, HttpServletRequest servletRequest) {
       this.layoutViewModelFactory = layoutViewModelFactory;
+      this.sourceLoader = sourceLoader;
    }
 
-   public boolean isCacheEnabled() {
-      return cacheEnabled;
+   public boolean isSourceCachingEnabled() {
+      return sourceCachingEnabled;
    }
 
-   public void setCacheEnabled(boolean cacheEnabled) {
-      this.cacheEnabled = cacheEnabled;
-   }
-
-   public boolean containsView(String url) {
-      return getResource(url) != null;
+   public void setCachingEnabled(boolean sourceCachingEnabled) {
+      this.sourceCachingEnabled = sourceCachingEnabled;
    }
 
    public Template createMustache(String view) {
-      String uri = getViewURI(view);
-      String template = getSource(uri);
-      return createMustache(uri, template);
+      String template = getSource(view);
+      return createMustache(view, template);
    }
 
    public void render(final String view, final Object scope, final Object parentScope, final PrintWriter writer) {
@@ -104,11 +81,10 @@ public class MustacheViewEngine implements ApplicationContextAware {
             public Reader getTemplate(String name) throws Exception {
                File file = new File(view);
                String path = file.getParent() + File.separator + name;
-               String uri = getViewURI(path);
-               return new StringReader(getSource(uri));
+               return new StringReader(getSource(path));
             }
          }).compile(template);
-         if(isCacheEnabled()) {
+         if(isSourceCachingEnabled()) {
             cache.put(view, compiled);
          }
          return compiled;
@@ -118,36 +94,11 @@ public class MustacheViewEngine implements ApplicationContextAware {
       }
    }
 
+   public boolean containsView(String url) {
+      return sourceLoader.containsSource(url);
+   }
+
    private String getSource(String url) {
-      try {
-         return IOUtils.toString(getResource(url).getInputStream());
-      }
-      catch(Exception e) {
-         throw new RuntimeException("Error resolving: " + url, e);
-      }
+      return sourceLoader.getSource(url);
    }
-
-   private String getViewURI(String view) {
-      if(view.startsWith("/") || view.startsWith("\\")) return view;
-      return basePath + view;
-   }
-
-   private Resource getResource(String url) {
-      try {
-         LocalizedResourceHelper helper = new LocalizedResourceHelper(applicationContext);
-         // Going to need to cache this, we could be called from another thread and won't have access to that Request.
-         // Locale userLocale = RequestContextUtils.getLocale(servletRequest);
-         Locale userLocale = Locale.US;
-         return helper.findLocalizedResource(url, ".html", userLocale);
-      }
-      catch(Exception e) {
-         throw new RuntimeException("Error resolving: " + url, e);
-      }
-   }
-
-   @Override
-   public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-      this.applicationContext = applicationContext;
-   }
-
 }
