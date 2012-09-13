@@ -28,7 +28,7 @@ public class DefaultTemplateSourceLoader implements TemplateSourceLoader, Applic
 
    @Override
    public boolean containsSource(String path) {
-      return getResource(getViewURI(path)) != null;
+      return getResource(getViewURI(path)).exists();
    }
 
    @Override
