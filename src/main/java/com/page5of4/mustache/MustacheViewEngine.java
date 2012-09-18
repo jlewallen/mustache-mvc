@@ -1,6 +1,5 @@
 package com.page5of4.mustache;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringReader;
@@ -79,9 +78,7 @@ public class MustacheViewEngine {
          Template compiled = Mustache.compiler().withLoader(new TemplateLoader() {
             @Override
             public Reader getTemplate(String name) throws Exception {
-               File file = new File(view);
-               String path = file.getParent() + File.separator + name;
-               return new StringReader(getSource(path));
+               return new StringReader(sourceLoader.getPartial(view, name));
             }
          }).compile(template);
          if(isSourceCachingEnabled()) {
