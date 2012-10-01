@@ -2,19 +2,19 @@ package com.page5of4.mustache;
 
 import java.util.Map;
 
-import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.context.ServletConfigAware;
+import org.springframework.web.context.ServletContextAware;
 
 import com.samskivert.mustache.Mustache;
 
-public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, ServletConfigAware {
+public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, ServletContextAware {
    private static final Logger logger = LoggerFactory.getLogger(DefaultLayoutViewModelFactory.class);
-   private ServletConfig servletConfig;
+   private ServletContext servletContext;
    private final ObjectMapper objectMapper = new ObjectMapper();
 
    @Override
@@ -43,8 +43,8 @@ public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, Se
    }
 
    @Override
-   public void setServletConfig(ServletConfig servletConfig) {
-      this.servletConfig = servletConfig;
+   public void setServletContext(ServletContext servletContext) {
+      this.servletContext = servletContext;
    }
 
    protected String getBodyModelAsJSON(Object bodyModel) {
@@ -58,10 +58,10 @@ public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, Se
    }
 
    protected ApplicationModel createApplicationModel() {
-      return new ApplicationModel(servletConfig.getServletContext().getContextPath());
+      return new ApplicationModel(servletContext.getContextPath());
    }
 
    protected String encodeURL(String url) {
-      return servletConfig.getServletContext().getContextPath() + "/" + url;
+      return servletContext.getContextPath() + "/" + url;
    }
 }
