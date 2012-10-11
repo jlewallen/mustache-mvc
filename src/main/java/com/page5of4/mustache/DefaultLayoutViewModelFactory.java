@@ -4,10 +4,12 @@ import java.util.Map;
 
 import javax.servlet.ServletContext;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.context.ServletContextAware;
 
 import com.samskivert.mustache.Mustache;
@@ -17,13 +19,16 @@ public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, Se
    private ServletContext servletContext;
    private final ObjectMapper objectMapper = new ObjectMapper();
 
+   @Value("${application.base.url.override:}")
+   private String applicationBaseOverride;
+
+   @Autowired(required = false)
+   private I18nLambdaFactory localizationFactory;
+
    @Override
    public LayoutViewModel createLayoutViewModel(Map<String, Object> model) {
       return createLayoutViewModel(model, null);
    }
-
-   @Autowired(required = false)
-   private I18nLambdaFactory localizationFactory;
 
    @Override
    public DefaultLayoutViewModel createLayoutViewModel(Map<String, Object> model, LayoutBodyFunction bodyFunction) {
@@ -58,6 +63,9 @@ public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, Se
    }
 
    protected ApplicationModel createApplicationModel() {
+      if(StringUtils.isNotEmpty(applicationBaseOverride)) {
+         return new ApplicationModel(applicationBaseOverride);
+      }
       return new ApplicationModel(servletContext.getContextPath());
    }
 

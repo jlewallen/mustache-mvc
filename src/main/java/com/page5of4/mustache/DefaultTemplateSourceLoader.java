@@ -56,7 +56,8 @@ public class DefaultTemplateSourceLoader implements TemplateSourceLoader, Applic
          // Going to need to cache this, we could be called from another thread and won't have access to that Request.
          // Locale userLocale = RequestContextUtils.getLocale(servletRequest);
          Locale userLocale = Locale.US;
-         return helper.findLocalizedResource(url, ".html", userLocale);
+         Resource resource = helper.findLocalizedResource(url, ".html", userLocale);
+         return resource;
       }
       catch(Exception e) {
          throw new RuntimeException(String.format("Error resolving: %s", url), e);
