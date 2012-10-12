@@ -82,12 +82,18 @@ public class DefaultTemplateSourceLoader implements TemplateSourceLoader, Applic
       return basePath + view;
    }
 
+   private String getNormalizedBasePath() {
+      String path = basePath.replace("\\", "/");
+      if(path.endsWith("/")) return path;
+      return path + "/";
+   }
+
    @Override
    public Collection<TemplateSource> getTemplates() {
       try {
          List<TemplateSource> templates = Lists.newArrayList();
-         Pattern pattern = Pattern.compile(String.format("%s/(\\S+).html", basePath));
-         for(Resource resource : resolver.getResources(String.format("%s/**/*.html", basePath))) {
+         Pattern pattern = Pattern.compile(String.format("%s(\\S+).html", getNormalizedBasePath()));
+         for(Resource resource : resolver.getResources(String.format("%s**/*.html", getNormalizedBasePath()))) {
             Matcher matcher = pattern.matcher(resource.getURI().toString());
             if(matcher.find()) {
                templates.add(new TemplateSource(matcher.group(1), resource));
