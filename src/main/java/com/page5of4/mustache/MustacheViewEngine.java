@@ -44,7 +44,12 @@ public class MustacheViewEngine {
    public void render(final String view, final Object scope, final Object parentScope, final PrintWriter writer) {
       try {
          Template template = createMustache(view);
-         template.execute(scope, parentScope, writer);
+         if(scope == null) {
+            template.execute(parentScope, parentScope, writer);
+         }
+         else {
+            template.execute(scope, parentScope, writer);
+         }
       }
       catch(Exception e) {
          throw new RuntimeException("Error rendering: " + view, e);
