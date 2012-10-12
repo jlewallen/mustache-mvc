@@ -1,7 +1,14 @@
 package com.page5of4.mustache;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.servlet.ServletContext;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.BeansException;
@@ -9,9 +16,15 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.LocalizedResourceHelper;
+import org.springframework.web.context.ServletContextAware;
+import org.springframework.web.context.support.ServletContextResourcePatternResolver;
 
-public class DefaultTemplateSourceLoader implements TemplateSourceLoader, ApplicationContextAware {
+import com.google.common.collect.Lists;
+
+public class DefaultTemplateSourceLoader implements TemplateSourceLoader, ApplicationContextAware, ServletContextAware {
    private ApplicationContext applicationContext;
+   private ServletContext servletContext;
+   private ServletContextResourcePatternResolver resolver;
    private String basePath = File.separator + "WEB-INF" + File.separator + "views" + File.separator;
 
    @Override
@@ -67,5 +80,29 @@ public class DefaultTemplateSourceLoader implements TemplateSourceLoader, Applic
    private String getViewURI(String view) {
       if(view.startsWith("/") || view.startsWith("\\")) return view;
       return basePath + view;
+   }
+
+   @Override
+   public Collection<TemplateSource> getTemplates() {
+      try {
+         List<TemplateSource> templates = Lists.newArrayList();
+         Pattern pattern = Pattern.compile(String.format("%s/(\\S+).html", basePath));
+         for(Resource resource : resolver.getResources(String.format("%s/**/*.html", basePath))) {
+            Matcher matcher = pattern.matcher(resource.getURI().toString());
+            if(matcher.find()) {
+               templates.add(new TemplateSource(matcher.group(1), resource));
+            }
+         }
+         return templates;
+      }
+      catch(IOException e) {
+         throw new RuntimeException(e);
+      }
+   }
+
+   @Override
+   public void setServletContext(ServletContext servletContext) {
+      this.servletContext = servletContext;
+      this.resolver = new ServletContextResourcePatternResolver(servletContext);
    }
 }

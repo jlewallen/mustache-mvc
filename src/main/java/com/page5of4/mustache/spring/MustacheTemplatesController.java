@@ -5,25 +5,20 @@ import java.io.InputStream;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.springframework.core.io.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.context.ServletContextAware;
-import org.springframework.web.context.support.ServletContextResourcePatternResolver;
 
 import com.google.common.collect.Maps;
+import com.page5of4.mustache.TemplateSourceLoader;
+import com.page5of4.mustache.TemplateSourceLoader.TemplateSource;
 
-public class MustacheTemplatesController implements ServletContextAware {
-   private ServletContext servletContext;
-   private ServletContextResourcePatternResolver resolver;
+public class MustacheTemplatesController {
    private static final Map<String, String> keywords = Maps.newHashMap();
 
    static {
@@ -39,6 +34,13 @@ public class MustacheTemplatesController implements ServletContextAware {
       for(String word : reserved) {
          keywords.put(word, "_" + word);
       }
+   }
+
+   @Autowired
+   private TemplateSourceLoader templateSourceLoader;
+
+   public void setTemplateSourceLoader(TemplateSourceLoader templateSourceLoader) {
+      this.templateSourceLoader = templateSourceLoader;
    }
 
    @RequestMapping(method = RequestMethod.GET)
@@ -91,17 +93,13 @@ public class MustacheTemplatesController implements ServletContextAware {
    private Map<String, String> all() {
       try {
          Map<String, String> all = new HashMap<String, String>();
-         Pattern pattern = Pattern.compile("/WEB-INF/views/(\\S+).html");
-         for(Resource resource : resolver.getResources("/WEB-INF/views/**/*.html")) {
-            Matcher matcher = pattern.matcher(resource.getURI().toString());
-            if(matcher.find()) {
-               InputStream stream = resource.getInputStream();
-               try {
-                  all.put(matcher.group(1).replace("/", ".").replace("-", "_"), IOUtils.toString(stream));
-               }
-               finally {
-                  stream.close();
-               }
+         for(TemplateSource template : templateSourceLoader.getTemplates()) {
+            InputStream stream = template.getResource().getInputStream();
+            try {
+               all.put(template.getRelativePath().replace("/", ".").replace("-", "_"), IOUtils.toString(stream));
+            }
+            finally {
+               stream.close();
             }
          }
          return all;
@@ -109,11 +107,5 @@ public class MustacheTemplatesController implements ServletContextAware {
       catch(Exception e) {
          throw new RuntimeException(e);
       }
-   }
-
-   @Override
-   public void setServletContext(ServletContext servletContext) {
-      this.servletContext = servletContext;
-      this.resolver = new ServletContextResourcePatternResolver(servletContext);
    }
 }
