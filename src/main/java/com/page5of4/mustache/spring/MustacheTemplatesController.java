@@ -54,6 +54,10 @@ public class MustacheTemplatesController {
       sb.write("var templates = {};\n");
       sb.write("templates.bodies = {};\n");
       sb.write("\n");
+      sb.write("templates.prepare = function(model) {\n");
+      sb.write("  return model;\n");
+      sb.write("}\n");
+      sb.write("\n");
       for(Map.Entry<String, String> entry : all().entrySet()) {
          String key = escapePathKeywords(entry.getKey());
          StringBuilder path = new StringBuilder();
@@ -70,7 +74,7 @@ public class MustacheTemplatesController {
          sb.write(String.format("templates.bodies.%s = \"%s\";\n", key, StringEscapeUtils.escapeJavaScript(entry.getValue())));
          sb.write(String.format("templates.%s = function(model) {\n", key));
          sb.write(String.format("  var template = templates.bodies.%s;\n", key));
-         sb.write("  return Mustache.to_html(template, model, templates.bodies);\n");
+         sb.write("  return Mustache.to_html(template, templates.prepare(model), templates.bodies);\n");
          sb.write("}\n\n");
       }
    }
