@@ -4,7 +4,6 @@ import java.io.File;
 
 import javax.servlet.ServletContext;
 
-import org.springframework.core.io.Resource;
 import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.context.support.ServletContextResourcePatternResolver;
 
@@ -15,8 +14,10 @@ public class ServletContextTemplateSourceLoader extends ClassPathTemplateSourceL
    }
 
    @Override
-   protected String getClientSideKeyForResource(Resource resource) {
-      return super.getClientSideKeyForResource(resource);
+   public String getPartial(String view, String path) {
+      File file = new File(getBasePath(), view);
+      String partialPath = (file.getParent() + File.separator + path).replace(getBasePath(), "");
+      return getSource(partialPath);
    }
 
    @Override

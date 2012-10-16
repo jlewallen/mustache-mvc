@@ -65,7 +65,7 @@ public class ClassPathTemplateSourceLoader implements TemplateSourceLoader, Appl
    @Override
    public String getPartial(String view, String path) {
       File file = new File(basePath, view);
-      String partialPath = (file.getParent() + File.separator + path).replace(basePath, "");
+      String partialPath = (file.getParent() + File.separator + path).replace(File.separator, "/").replace(basePath, "");
       return getSource(partialPath);
    }
 
