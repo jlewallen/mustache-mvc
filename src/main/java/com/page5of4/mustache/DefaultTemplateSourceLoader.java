@@ -14,6 +14,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.LocalizedResourceHelper;
 import org.springframework.web.context.ServletContextAware;
@@ -92,9 +93,13 @@ public class DefaultTemplateSourceLoader implements TemplateSourceLoader, Applic
    public Collection<TemplateSource> getTemplates() {
       try {
          List<TemplateSource> templates = Lists.newArrayList();
-         Pattern pattern = Pattern.compile(String.format("%s(\\S+).html", getNormalizedBasePath()));
+         Pattern pattern = buildPathToKeyPattern();
          for(Resource resource : resolver.getResources(String.format("%s**/*.html", getNormalizedBasePath()))) {
-            Matcher matcher = pattern.matcher(resource.getURI().toString());
+            String path = resource.getURI().toString();
+            if(resource instanceof ClassPathResource) {
+               path = ((ClassPathResource)resource).getPath();
+            }
+            Matcher matcher = pattern.matcher(path);
             if(matcher.find()) {
                templates.add(new TemplateSource(matcher.group(1), resource));
             }
@@ -104,6 +109,11 @@ public class DefaultTemplateSourceLoader implements TemplateSourceLoader, Applic
       catch(IOException e) {
          throw new RuntimeException(e);
       }
+   }
+
+   public Pattern buildPathToKeyPattern() {
+      String normalizedBasePath = getNormalizedBasePath().replace("classpath*:/", "").replace("classpath:/", "");
+      return Pattern.compile(String.format("%s(\\S+).html", normalizedBasePath));
    }
 
    @Override
