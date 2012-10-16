@@ -5,28 +5,21 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.servlet.ServletContext;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.LocalizedResourceHelper;
-import org.springframework.web.context.ServletContextAware;
-import org.springframework.web.context.support.ServletContextResourcePatternResolver;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import com.google.common.collect.Lists;
 
-public class DefaultTemplateSourceLoader implements TemplateSourceLoader, ApplicationContextAware, ServletContextAware {
+public class ClassPathTemplateSourceLoader implements TemplateSourceLoader, ApplicationContextAware {
+   private PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+   private String basePath = "classpath:/views/";
    private ApplicationContext applicationContext;
-   private ServletContext servletContext;
-   private ServletContextResourcePatternResolver resolver;
-   private String basePath = File.separator + "WEB-INF" + File.separator + "views" + File.separator;
 
    @Override
    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -39,6 +32,18 @@ public class DefaultTemplateSourceLoader implements TemplateSourceLoader, Applic
 
    public void setBasePath(String basePath) {
       this.basePath = basePath;
+   }
+
+   public PathMatchingResourcePatternResolver getResolver() {
+      return resolver;
+   }
+
+   public void setResolver(PathMatchingResourcePatternResolver resolver) {
+      this.resolver = resolver;
+   }
+
+   public ApplicationContext getApplicationContext() {
+      return applicationContext;
    }
 
    @Override
@@ -64,7 +69,7 @@ public class DefaultTemplateSourceLoader implements TemplateSourceLoader, Applic
       return getSource(partialPath);
    }
 
-   private Resource getResource(String url) {
+   protected Resource getResource(String url) {
       try {
          LocalizedResourceHelper helper = new LocalizedResourceHelper(applicationContext);
          // Going to need to cache this, we could be called from another thread and won't have access to that Request.
@@ -78,12 +83,12 @@ public class DefaultTemplateSourceLoader implements TemplateSourceLoader, Applic
       }
    }
 
-   private String getViewURI(String view) {
+   protected String getViewURI(String view) {
       if(view.startsWith("/") || view.startsWith("\\")) return view;
       return basePath + view;
    }
 
-   private String getNormalizedBasePath() {
+   protected String getNormalizedBasePath() {
       String path = basePath.replace("\\", "/");
       if(path.endsWith("/")) return path;
       return path + "/";
@@ -93,15 +98,10 @@ public class DefaultTemplateSourceLoader implements TemplateSourceLoader, Applic
    public Collection<TemplateSource> getTemplates() {
       try {
          List<TemplateSource> templates = Lists.newArrayList();
-         Pattern pattern = buildPathToKeyPattern();
          for(Resource resource : resolver.getResources(String.format("%s**/*.html", getNormalizedBasePath()))) {
-            String path = resource.getURI().toString();
-            if(resource instanceof ClassPathResource) {
-               path = ((ClassPathResource)resource).getPath();
-            }
-            Matcher matcher = pattern.matcher(path);
-            if(matcher.find()) {
-               templates.add(new TemplateSource(matcher.group(1), resource));
+            String key = getClientSideKeyForResource(resource);
+            if(key != null) {
+               templates.add(new TemplateSource(key, resource));
             }
          }
          return templates;
@@ -111,14 +111,19 @@ public class DefaultTemplateSourceLoader implements TemplateSourceLoader, Applic
       }
    }
 
-   public Pattern buildPathToKeyPattern() {
-      String normalizedBasePath = getNormalizedBasePath().replace("classpath*:/", "").replace("classpath:/", "");
-      return Pattern.compile(String.format("%s(\\S+).html", normalizedBasePath));
-   }
-
-   @Override
-   public void setServletContext(ServletContext servletContext) {
-      this.servletContext = servletContext;
-      this.resolver = new ServletContextResourcePatternResolver(servletContext);
+   protected String getClientSideKeyForResource(Resource resource) {
+      try {
+         String path = resource.getURI().toString();
+         String directory = getNormalizedBasePath().replace("classpath:", "").replace("classpath*:", "");
+         int i = path.indexOf(directory);
+         if(i < 0) {
+            return null;
+         }
+         String relative = path.substring(i + directory.length());
+         return relative.replace(".html", "");
+      }
+      catch(IOException e) {
+         throw new RuntimeException(e);
+      }
    }
 }
