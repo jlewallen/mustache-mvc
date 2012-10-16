@@ -51,30 +51,44 @@ public class MustacheTemplatesController {
 
    public void templates(Writer writer) throws IOException {
       Writer sb = writer;
-      sb.write("var templates = {};\n");
-      sb.write("templates.bodies = {};\n");
+      sb.write("if (typeof(templates) == 'undefined') templates = {};\n");
+      sb.write("if (typeof(templates._internal) == 'undefined') templates._internal = {};\n");
       sb.write("\n");
-      sb.write("templates.prepare = function(model) {\n");
+      sb.write("if (typeof(templates.partials) == 'undefined') templates.partials = function(root, name) {\n");
+      sb.write("  return root[name].body;\n");
+      sb.write("}\n");
+      sb.write("\n");
+      sb.write("if (typeof(templates.prepare) == 'undefined') templates.prepare = function(model) {\n");
       sb.write("  return model;\n");
       sb.write("}\n");
       sb.write("\n");
+      sb.write("var body = null;\n");
+      sb.write("\n");
       for(Map.Entry<String, String> entry : all().entrySet()) {
          String key = escapePathKeywords(entry.getKey());
+         String folderKey = key.lastIndexOf('.') >= 0 ? key.substring(0, key.lastIndexOf('.')) : key;
          StringBuilder path = new StringBuilder();
          String[] parts = key.split("\\.");
-         for(int i = 0; i < parts.length - 1; ++i) {
+         for(int i = 0; i < parts.length; ++i) {
             String part = parts[i];
             if(path.length() != 0) {
                path.append(".");
             }
             path.append(part);
-            sb.append(String.format("if (typeof(templates.bodies.%s) == 'undefined') templates.bodies.%s = {};\n", path.toString(), path.toString()));
-            sb.append(String.format("if (typeof(templates.%s) == 'undefined') templates.%s = {};\n", path.toString(), path.toString()));
+            if(i < parts.length - 1) {
+               sb.append(String.format("if (typeof(templates._internal.%s) == 'undefined') templates._internal.%s = {};\n", path.toString(), path.toString()));
+               sb.append(String.format("if (typeof(templates.%s) == 'undefined') templates.%s = {};\n", path.toString(), path.toString()));
+            }
          }
-         sb.write(String.format("templates.bodies.%s = \"%s\";\n", key, StringEscapeUtils.escapeJavaScript(entry.getValue())));
+         sb.write(String.format("\n"));
+         sb.write(String.format("body = \"%s\";\n", StringEscapeUtils.escapeJavaScript(entry.getValue())));
+         sb.write(String.format("templates._internal.%s = {\n", key));
+         sb.write(String.format("  body : body,\n"));
+         sb.write(String.format("  compiled : Mustache.compile(body),\n"));
+         sb.write(String.format("  partials : function(name) {\n    return templates.partials(templates._internal.%s, name);\n  }\n", folderKey));
+         sb.write(String.format("};\n"));
          sb.write(String.format("templates.%s = function(model) {\n", key));
-         sb.write(String.format("  var template = templates.bodies.%s;\n", key));
-         sb.write("  return Mustache.to_html(template, templates.prepare(model), templates.bodies);\n");
+         sb.write(String.format("  return templates._internal.%s.compiled(templates.prepare(model), templates._internal.%s.partials);\n", key, key));
          sb.write("}\n\n");
       }
    }
