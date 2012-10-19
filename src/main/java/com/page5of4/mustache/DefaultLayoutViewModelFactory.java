@@ -1,6 +1,7 @@
 package com.page5of4.mustache;
 
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import javax.servlet.ServletContext;
 
@@ -36,15 +37,20 @@ public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, Se
    }
 
    @Override
-   public DefaultLayoutViewModel createLayoutViewModel(Map<String, Object> model, LayoutBodyFunction bodyFunction, LayoutHeadersFunction headersFunction) {
+   public DefaultLayoutViewModel createLayoutViewModel(final Map<String, Object> model, LayoutBodyFunction bodyFunction, LayoutHeadersFunction headersFunction) {
       final ApplicationModel applicationModel = createApplicationModel();
       model.put(SingleModelAndView.APPLICATION_MODEL_NAME, applicationModel);
-      String bodyModelAsJSON = getBodyModelAsJSON(SingleModelAndView.getBodyModel(model));
+      Callable<String> bodyModelAsJsonFunction = new Callable<String>() {
+         @Override
+         public String call() throws Exception {
+            return getBodyModelAsJSON(SingleModelAndView.getBodyModel(model));
+         }
+      };
       Mustache.Lambda i18nLambda = null;
       if(localizationFactory != null) {
          i18nLambda = localizationFactory.getI18nLambda();
       }
-      return new DefaultLayoutViewModel(applicationModel, SingleModelAndView.getBodyModel(model), bodyModelAsJSON, SingleModelAndView.getLayoutModel(model), bodyFunction, headersFunction, i18nLambda);
+      return new DefaultLayoutViewModel(applicationModel, SingleModelAndView.getBodyModel(model), bodyModelAsJsonFunction, SingleModelAndView.getLayoutModel(model), bodyFunction, headersFunction, i18nLambda);
    }
 
    @Override
