@@ -55,7 +55,7 @@ public class ClassPathTemplateSourceLoader implements TemplateSourceLoader, Appl
    public String getSource(String path) {
       String url = getViewURI(path);
       try {
-         return IOUtils.toString(getResource(url).getInputStream());
+         return IOUtils.toString(getResource(url).getInputStream(), "UTF-8");
       }
       catch(Exception e) {
          throw new RuntimeException(String.format("Error resolving: %s (%s)", url, path), e);
