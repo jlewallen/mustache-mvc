@@ -15,9 +15,15 @@ public class ServletContextTemplateSourceLoader extends ClassPathTemplateSourceL
 
    @Override
    public String getPartial(String view, String path) {
-      File file = new File(getBasePath(), view);
-      String partialPath = (file.getParent() + File.separator + path).replace(getBasePath(), "");
-      return getSource(partialPath);
+      String partialPath;
+      if(!path.startsWith("/")) {
+         File file = new File(getBasePath(), view);
+         partialPath = (file.getParent() + File.separator + path);
+      }
+      else {
+         partialPath = new File(getBasePath(), path).toString();
+      }
+      return getSource(partialPath.replace(getBasePath(), ""));
    }
 
    @Override
