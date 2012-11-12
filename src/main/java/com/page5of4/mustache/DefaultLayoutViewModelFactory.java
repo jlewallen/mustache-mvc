@@ -5,7 +5,6 @@ import java.util.concurrent.Callable;
 
 import javax.servlet.ServletContext;
 
-import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +22,15 @@ public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, Se
    @Value("${application.base.url.override:}")
    private String applicationBaseOverride;
 
+   @Autowired
+   private ApplicationModelFactory applicationModelFactory;
+
    @Autowired(required = false)
    private I18nLambdaFactory localizationFactory;
+
+   public void setApplicationModelFactory(ApplicationModelFactory applicationModelFactory) {
+      this.applicationModelFactory = applicationModelFactory;
+   }
 
    @Override
    public LayoutViewModel createLayoutViewModel(Map<String, Object> model) {
@@ -69,10 +75,7 @@ public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, Se
    }
 
    protected ApplicationModel createApplicationModel() {
-      if(StringUtils.isNotEmpty(applicationBaseOverride)) {
-         return new ApplicationModel(applicationBaseOverride);
-      }
-      return new ApplicationModel(servletContext.getContextPath());
+      return applicationModelFactory.create();
    }
 
    protected String encodeURL(String url) {
