@@ -3,6 +3,7 @@ package com.page5of4.mustache.spring;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -36,6 +38,9 @@ public class MustacheTemplatesController {
       }
    }
 
+   @Value("{mustache.templates.controller.allow_caching:false}")
+   private boolean allowCaching;
+
    @Autowired
    private TemplateSourceLoader templateSourceLoader;
 
@@ -46,7 +51,15 @@ public class MustacheTemplatesController {
    @RequestMapping(method = RequestMethod.GET)
    public void index(HttpServletResponse servletResponse) throws IOException {
       servletResponse.setContentType("text/javascript");
+      if(allowCaching) {
+         addCacheHeaders(servletResponse);
+      }
       templates(servletResponse.getWriter());
+   }
+
+   private void addCacheHeaders(HttpServletResponse response) {
+      response.addHeader("Cache-Control", "public, max-age=315360000, post-check=315360000, pre-check=315360000");
+      response.addHeader("Expires", new Date(new Date().getTime() + 315360000).toString());
    }
 
    public void templates(Writer writer) throws IOException {
