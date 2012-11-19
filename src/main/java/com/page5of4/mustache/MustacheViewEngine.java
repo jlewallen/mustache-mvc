@@ -80,7 +80,7 @@ public class MustacheViewEngine {
          return cache.get(view);
       }
       try {
-         Template compiled = Mustache.compiler().withLoader(new TemplateLoader() {
+         Template compiled = Mustache.compiler().nullValue("").withLoader(new TemplateLoader() {
             @Override
             public Reader getTemplate(String name) throws Exception {
                return new StringReader(sourceLoader.getPartial(view, name));
