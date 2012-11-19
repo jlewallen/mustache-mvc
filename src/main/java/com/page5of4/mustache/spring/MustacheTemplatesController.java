@@ -38,7 +38,7 @@ public class MustacheTemplatesController {
       }
    }
 
-   @Value("{mustache.templates.controller.allow_caching:false}")
+   @Value("${mustache.templates.controller.allow_caching:false}")
    private boolean allowCaching;
 
    @Autowired
