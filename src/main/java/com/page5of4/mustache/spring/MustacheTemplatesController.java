@@ -1,11 +1,15 @@
 package com.page5of4.mustache.spring;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -21,7 +25,7 @@ import com.page5of4.mustache.TemplateSourceLoader;
 import com.page5of4.mustache.TemplateSourceLoader.TemplateSource;
 
 public class MustacheTemplatesController {
-   private static final Map<String, String> keywords = Maps.newHashMap();
+   protected static final Map<String, String> keywords = Maps.newHashMap();
 
    static {
       String[] reserved = new String[] {
@@ -39,25 +43,48 @@ public class MustacheTemplatesController {
    }
 
    @Value("${mustache.templates.controller.allow_caching:false}")
-   private boolean allowCaching;
+   protected boolean allowCaching;
+
+   @Value("${mustache.templates.controller.use_gzip:true}")
+   protected boolean useGzip;
+
+   protected TemplateSourceLoader templateSourceLoader;
+
+   public MustacheTemplatesController() {}
 
    @Autowired
-   private TemplateSourceLoader templateSourceLoader;
-
    public void setTemplateSourceLoader(TemplateSourceLoader templateSourceLoader) {
       this.templateSourceLoader = templateSourceLoader;
    }
 
    @RequestMapping(method = RequestMethod.GET)
    public void index(HttpServletResponse servletResponse) throws IOException {
-      servletResponse.setContentType("text/javascript");
       if(allowCaching) {
          addCacheHeaders(servletResponse);
       }
-      templates(servletResponse.getWriter());
+      servletResponse.setContentType("text/javascript");
+      if(useGzip) {
+         writeGzippedResponse(servletResponse);
+      }
+      else {
+         templates(servletResponse.getWriter());
+      }
    }
 
-   private void addCacheHeaders(HttpServletResponse response) {
+   protected void writeGzippedResponse(HttpServletResponse servletResponse) throws IOException {
+      ByteArrayOutputStream compressed = new ByteArrayOutputStream();
+      GZIPOutputStream gzOut = new GZIPOutputStream(compressed);
+      PrintWriter writer = new PrintWriter(new OutputStreamWriter(gzOut, servletResponse.getCharacterEncoding()), true);
+      templates(writer);
+      writer.flush();
+      gzOut.close();
+      byte[] byteArray = compressed.toByteArray();
+      servletResponse.setHeader("Content-Encoding", "gzip");
+      servletResponse.setContentLength(byteArray.length);
+      servletResponse.getOutputStream().write(byteArray);
+   }
+
+   protected void addCacheHeaders(HttpServletResponse response) {
       response.addHeader("Cache-Control", "public, max-age=315360000, post-check=315360000, pre-check=315360000");
       response.addHeader("Expires", new Date(new Date().getTime() + 315360000).toString());
    }
@@ -116,7 +143,7 @@ public class MustacheTemplatesController {
       }
    }
 
-   private String escapePathKeywords(String path) {
+   protected String escapePathKeywords(String path) {
       StringBuilder escaped = new StringBuilder();
       for(String part : path.split("\\.")) {
          if(escaped.length() != 0) {
@@ -131,7 +158,7 @@ public class MustacheTemplatesController {
       return escaped.toString();
    }
 
-   private Map<String, String> all() {
+   protected Map<String, String> all() {
       try {
          Map<String, String> all = new HashMap<String, String>();
          for(TemplateSource template : templateSourceLoader.getTemplates()) {
