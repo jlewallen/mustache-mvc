@@ -13,6 +13,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.LocalizedResourceHelper;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.web.context.support.ServletContextResource;
 
 import com.google.common.collect.Lists;
 
@@ -20,6 +21,8 @@ public class ClassPathTemplateSourceLoader implements TemplateSourceLoader, Appl
    private PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
    private String basePath = "classpath:/views/";
    private ApplicationContext applicationContext;
+   private final List<String> excludedPatterns = Lists.newArrayList();
+   private final List<String> includedPatterns = Lists.newArrayList();
 
    @Override
    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -46,6 +49,14 @@ public class ClassPathTemplateSourceLoader implements TemplateSourceLoader, Appl
       return applicationContext;
    }
 
+   public void addExcludedPattern(String pattern) {
+      excludedPatterns.add(pattern);
+   }
+
+   public void addIncludePattern(String pattern) {
+      includedPatterns.add(pattern);
+   }
+
    @Override
    public boolean containsSource(String path) {
       return getResource(getViewURI(path)).exists();
@@ -55,10 +66,34 @@ public class ClassPathTemplateSourceLoader implements TemplateSourceLoader, Appl
    public String getSource(String path) {
       String url = getViewURI(path);
       try {
+         assertUrlIsAllowed(url);
          return IOUtils.toString(getResource(url).getInputStream(), "UTF-8");
       }
       catch(Exception e) {
          throw new RuntimeException(String.format("Error resolving: %s (%s)", url, path), e);
+      }
+   }
+
+   protected boolean urlAllowed(String url) {
+      for(String pattern : excludedPatterns) {
+         if(url.matches(pattern)) {
+            return false;
+         }
+      }
+      if(includedPatterns.size() > 0) {
+         for(String pattern : includedPatterns) {
+            if(url.matches(pattern)) {
+               return true;
+            }
+         }
+         return false;
+      }
+      return true;
+   }
+
+   protected void assertUrlIsAllowed(String url) throws Exception {
+      if(!urlAllowed(url)) {
+         throw new Exception("Path was excluded");
       }
    }
 
@@ -99,9 +134,13 @@ public class ClassPathTemplateSourceLoader implements TemplateSourceLoader, Appl
       try {
          List<TemplateSource> templates = Lists.newArrayList();
          for(Resource resource : resolver.getResources(String.format("%s**/*.html", getNormalizedBasePath()))) {
-            String key = getClientSideKeyForResource(resource);
-            if(key != null) {
-               templates.add(new TemplateSource(key, resource));
+            ServletContextResource contextResource = (ServletContextResource)resource;
+            if(urlAllowed(contextResource.getPath())) {
+               String key = getClientSideKeyForResource(resource);
+               if(key != null) {
+                  templates.add(new TemplateSource(key, resource));
+               }
+
             }
          }
          return templates;
