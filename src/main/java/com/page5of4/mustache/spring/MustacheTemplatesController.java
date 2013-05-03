@@ -134,7 +134,10 @@ public class MustacheTemplatesController {
          sb.write(String.format("body = \"%s\";\n", StringEscapeUtils.escapeJavaScript(entry.getValue())));
          sb.write(String.format("templates._internal.%s = {\n", key));
          sb.write(String.format("  body : body,\n"));
-         sb.write(String.format("  compiled : Mustache.compile(body),\n"));
+         sb.write(String.format("  compiled : function(){ \n "));
+         sb.write(String.format("    if(! this.cache) this.cache = Mustache.compile(this.body);\n"));
+         sb.write(String.format("    return this.cache.apply(this, arguments);\n"));
+         sb.write(String.format("  },\n"));
          sb.write(String.format("  partials : function(name) {\n    return templates.partials(templates._internal.%s, name);\n  }\n", folderKey));
          sb.write(String.format("};\n"));
          sb.write(String.format("templates.%s = function(model) {\n", key));
