@@ -48,6 +48,9 @@ public class MustacheTemplatesController {
    @Value("${mustache.templates.controller.use_gzip:true}")
    protected boolean useGzip;
 
+   @Value("${mustache.templates.encoding:UTF-8}")
+   protected String encoding;
+
    protected TemplateSourceLoader templateSourceLoader;
 
    public MustacheTemplatesController() {}
@@ -167,7 +170,7 @@ public class MustacheTemplatesController {
          for(TemplateSource template : templateSourceLoader.getTemplates()) {
             InputStream stream = template.getResource().getInputStream();
             try {
-               all.put(template.getRelativePath().replace("/", ".").replace("-", "_"), IOUtils.toString(stream));
+               all.put(template.getRelativePath().replace("/", ".").replace("-", "_"), IOUtils.toString(stream, encoding));
             }
             finally {
                stream.close();
