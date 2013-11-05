@@ -3,7 +3,7 @@
 
 	<groupId>com.page5of4.commons</groupId>
 	<artifactId>mustache-mvc</artifactId>
-	<version>1.2.4</version>
+	<version>1.2.5-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 
 	<properties>
