@@ -1,18 +1,16 @@
 package com.page5of4.mustache;
 
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import javax.servlet.ServletContext;
-
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.samskivert.mustache.Mustache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.context.ServletContextAware;
 
-import com.samskivert.mustache.Mustache;
+import javax.servlet.ServletContext;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 public class DefaultLayoutViewModelFactory implements LayoutViewModelFactory, ServletContextAware {
    private static final Logger logger = LoggerFactory.getLogger(DefaultLayoutViewModelFactory.class);
