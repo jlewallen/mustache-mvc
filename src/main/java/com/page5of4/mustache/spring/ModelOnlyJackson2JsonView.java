@@ -1,10 +1,10 @@
 package com.page5of4.mustache.spring;
 
-import org.springframework.web.servlet.view.json.MappingJacksonJsonView;
+import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
 import java.util.Map;
 
-public class ModelOnlyJacksonJsonView extends MappingJacksonJsonView {
+public class ModelOnlyJackson2JsonView extends MappingJackson2JsonView {
 
    @Override
    @SuppressWarnings("unchecked")
